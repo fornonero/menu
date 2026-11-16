@@ -27,18 +27,20 @@ a{color:inherit}
 #intro .lg{width:210px;opacity:0;transform:scale(.9);animation:logoIn 1s .2s forwards}
 .hero .wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;display:flex;align-items:stretch;justify-content:space-between;gap:24px}
 .hero .txt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.hero .show{flex:1;align-self:stretch;position:relative;min-height:380px;overflow:hidden;-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent 100%);mask-image:radial-gradient(closest-side,#000 62%,transparent 100%)}
-.dish{position:absolute;left:50%;top:50%;width:230px;height:230px;margin:-115px 0 0 -115px;opacity:0;animation:pass 4.2s cubic-bezier(.45,.05,.25,1) forwards;will-change:transform,opacity}
-.dish img{width:100%;height:100%;object-fit:contain;display:block;animation:spin 9s linear infinite}
-.dish.pasta img{border-radius:50%}
-.dish::after{content:"";position:absolute;left:12%;right:12%;bottom:-6%;height:12%;border-radius:50%;background:rgba(0,0,0,.28);filter:blur(10px);z-index:-1}
-@keyframes pass{0%{transform:translate(-190%,120%) scale(.55) rotate(-140deg);opacity:0}
-22%{opacity:1}
-32%{transform:translate(0,0) scale(1) rotate(0deg);opacity:1}
-68%{transform:translate(0,0) scale(1) rotate(25deg);opacity:1}
-88%{opacity:.6}
-100%{transform:translate(190%,-120%) scale(.55) rotate(150deg);opacity:0}}
-@media (max-width:720px){.hero .show{width:100%;min-height:300px;flex:none}.dish{width:180px;height:180px;margin:-90px 0 0 -90px}}
+.hero .show{flex:1;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:6px 0}
+.deck{position:relative;width:300px;aspect-ratio:4/5;perspective:1200px}
+.slide{position:absolute;inset:0;border-radius:22px;overflow:hidden;box-shadow:0 22px 50px rgba(0,0,0,.45);background:#2a0806;opacity:0;transform:translateY(30px) scale(.86);transition:transform .9s cubic-bezier(.2,.8,.2,1),opacity .9s,filter .9s;will-change:transform,opacity}
+.slide img{width:100%;height:100%;object-fit:cover;display:block}
+.slide.cur{opacity:1;transform:none;z-index:3}
+.slide.cur img{animation:kb 4.2s ease-out forwards}
+.slide.n1{opacity:.9;transform:translate(26px,12px) rotate(7deg) scale(.93);z-index:2;filter:brightness(.6)}
+.slide.n2{opacity:.7;transform:translate(-24px,18px) rotate(-7deg) scale(.88);z-index:1;filter:brightness(.45)}
+.slide.out{opacity:0;transform:translate(-120%,-12%) rotate(-24deg) scale(.95);z-index:4;transition:transform .85s cubic-bezier(.6,0,.4,1),opacity .85s}
+.slide.cur::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.28) 50%,transparent 65%);transform:translateX(-120%);animation:shine 1.3s .35s ease-out forwards}
+@keyframes kb{from{transform:scale(1.12)}to{transform:scale(1)}}
+@keyframes shine{to{transform:translateX(120%)}}
+.dots{display:flex;gap:7px}.dots i{width:8px;height:8px;border-radius:999px;background:rgba(247,239,226,.4);transition:width .4s,background .4s}.dots i.on{width:24px;background:var(--cream)}
+@media (max-width:720px){.hero .show{width:100%;flex:none}.deck{width:min(70vw,280px)}}
 @media (max-width:720px){.hero .wrap{flex-direction:column}}
 .stage{position:relative;width:min(76vw,340px);height:min(76vw,340px);display:flex;align-items:center;justify-content:center}
 .orbit{position:absolute;inset:0;border-radius:50%;border:1px dashed rgba(247,239,226,.35);animation:spin 26s linear infinite reverse}
@@ -145,7 +147,7 @@ footer a{color:var(--cream)}
    <h1 class="ms">المنيو · <span class="it" dir="ltr">Il Menu</span></h1>
    <p>بيتزا نابولي وباستا ومقبلات إيطالية — من الفرن إلى طاولتك</p>
   </div>
-  <div class="show" aria-hidden="true" id="show"></div>
+  <div class="show" aria-hidden="true"><div class="deck" id="deck"></div><div class="dots" id="dots"></div></div>
  </div>
 </header>
 <div class="actions">
@@ -203,12 +205,13 @@ const intro=document.getElementById('intro');let done=false;
 function close(){if(done)return;done=true;intro.classList.add('out');setTimeout(()=>intro.remove(),950)}
 document.getElementById('enter').onclick=close;document.getElementById('skip').onclick=close;
 const DISHES=DATA.slice(0,2).flatMap(c=>c.items).filter(i=>i.img);
-const PASTA=['arrabbiata','pink','truffle_penne','mushroom','alfredo'];
-const SEQ=[];for(let i=0;i<Math.max(DISHES.length,PASTA.length)*2;i++){SEQ.push({src:DISHES[i%DISHES.length].img,pasta:false});SEQ.push({src:PASTA[i%PASTA.length],pasta:true});}
-SEQ.forEach(x=>{const p=new Image();p.src='assets/'+x.src+'.webp'});
-const show=document.getElementById('show');let si=0;
-function nextDish(){const x=SEQ[si%SEQ.length];si++;const d=document.createElement('div');d.className='dish'+(x.pasta?' pasta':'');const im=document.createElement('img');im.src='assets/'+x.src+'.webp';im.alt='';d.appendChild(im);show.appendChild(d);d.addEventListener('animationend',e=>{if(e.target===d)d.remove()})}
-nextDish();setInterval(nextDish,2600);
+const ADS=['ad1','ad2','ad3','ad4','ad5'];
+const deck=document.getElementById('deck'),dots=document.getElementById('dots');
+const slides=ADS.map((n,k)=>{const d=document.createElement('div');d.className='slide';const im=document.createElement('img');im.src='assets/'+n+'.webp';im.alt='';d.appendChild(im);deck.appendChild(d);const dt=document.createElement('i');dots.appendChild(dt);return d});
+let cur=0;
+function lay(){const N=slides.length;slides.forEach((d,k)=>{const r=(k-cur+N)%N;d.classList.remove('cur','n1','n2');if(d.classList.contains('out'))return;if(r===0)d.classList.add('cur');else if(r===1)d.classList.add('n1');else if(r===2)d.classList.add('n2')});[...dots.children].forEach((x,k)=>x.classList.toggle('on',k===cur))}
+lay();
+setInterval(()=>{const o=slides[cur];o.classList.remove('cur');o.classList.add('out');setTimeout(()=>{o.classList.remove('out')},900);cur=(cur+1)%slides.length;lay()},4200);
 setTimeout(close,5200);
 </script>
 </body>
